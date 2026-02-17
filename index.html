@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nisa'mın Dünyası ❤️</title>
+    <style>
+        :root { --ana-renk: #d63384; --arka-plan: #fff5f8; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--arka-plan); margin: 0; overflow: hidden; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        
+        /* Arka Plan Yağmuru */
+        .yagmur { position: fixed; top: -50px; font-size: 24px; pointer-events: none; z-index: 1; animation: dusme 5s linear infinite; opacity: 0.7; }
+        @keyframes dusme { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(110vh) rotate(360deg); } }
+
+        /* PATLAYAN KONFETİ */
+        .patlayan-konfeti { position: fixed; pointer-events: none; z-index: 9999; font-size: 30px; will-change: transform; }
+
+        /* SİNEKLİK İMLECİ (PALKA) */
+        #palka {
+            position: fixed; width: 70px; height: 70px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="45" y="50" width="10" height="45" fill="brown"/><rect x="20" y="5" width="60" height="50" fill="rgba(0,128,0,0.6)" stroke="black" stroke-width="2" rx="5"/><line x1="20" y1="5" x2="80" y2="55" stroke="black" stroke-width="0.5"/><line x1="80" y1="5" x2="20" y2="55" stroke="black" stroke-width="0.5"/></svg>') no-repeat;
+            pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); display: none;
+        }
+        .vur-etki { transform: translate(-50%, -50%) rotate(-40deg) scale(0.7) !important; }
+
+        .container { width: 90%; max-width: 450px; background: rgba(255, 255, 255, 0.93); padding: 25px; border-radius: 30px; box-shadow: 0 20px 50px rgba(214,51,132,0.2); text-align: center; position: relative; z-index: 10; border: 2px solid #f8bbd0; backdrop-filter: blur(5px); max-height: 90vh; overflow-y: auto; }
+        .ekran { display: none; animation: fadeIn 0.5s; }
+        .aktif { display: block; }
+        
+        .menu-btn { width: 100%; padding: 13px; margin: 6px 0; border: none; border-radius: 50px; background: var(--ana-renk); color: white; font-size: 15px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .menu-btn:hover { transform: scale(1.02); filter: brightness(1.1); }
+        .geri-btn { background: #8e9aaf !important; margin-top: 15px; }
+
+        /* KOCA AVCISI OYUNU */
+        #game-stage { width: 100%; height: 350px; background: #e1f5fe; border: 3px dashed var(--ana-renk); border-radius: 20px; position: relative; overflow: hidden; margin: 15px 0; cursor: none; }
+        .target { position: absolute; cursor: pointer; user-select: none; }
+        .koca-obj { width: 65px; height: 65px; border-radius: 50%; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .fly-obj { font-size: 45px; }
+        @keyframes flyUp { from { transform: translateY(400px); } to { transform: translateY(-120px); } }
+
+        /* STRES ATMA SAHASI */
+        .stres-alan { position: relative; width: 200px; height: 200px; margin: 20px auto; cursor: crosshair; }
+        .koca-foto { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 5px solid var(--ana-renk); transition: transform 0.1s; user-select: none; pointer-events: none; }
+        .vurus-metni { position: absolute; color: red; font-weight: bold; font-size: 24px; pointer-events: none; animation: ucur 0.5s ease-out forwards; z-index: 100; text-shadow: 1px 1px 2px white; }
+        @keyframes ucur { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-100px) scale(1.5); opacity: 0; } }
+
+        /* ZAMAN TÜNELİ İSTATİSTİKLER */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .stat-item { background: #fff; border: 1px solid #f8bbd0; padding: 10px; border-radius: 15px; font-size: 13px; }
+        .stat-val { display: block; font-size: 18px; color: var(--ana-renk); font-weight: bold; }
+
+        /* Mevsimler */
+        .mevsim-izgara { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .mevsim-kutu { cursor: pointer; transition: 0.3s; position: relative; border-radius: 15px; overflow: hidden; border: 3px solid #fff; }
+        .mevsim-kutu img { width: 100%; height: 100px; object-fit: cover; display: block; }
+        .mevsim-etiket { position: absolute; bottom: 0; width: 100%; background: rgba(214, 51, 132, 0.8); color: white; font-size: 11px; padding: 4px 0; }
+        
+        #fotoModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        #modalImg { max-width: 90%; max-height: 60%; border-radius: 15px; border: 4px solid white; }
+        #modalNot { color: white; margin-top: 20px; font-size: 18px; text-align: center; padding: 0 25px; }
+        
+        .popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 3px solid var(--ana-renk); padding: 25px; border-radius: 20px; z-index: 10001; width: 85%; max-width: 350px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body onmousemove="movePalka(event)" onmousedown="hitPalka()" onmouseup="resetPalka()">
+
+<div id="palka"></div>
+<audio id="ozelSes" src="katmer.mp3" preload="auto" loop></audio>
+
+<div class="container">
+    <div id="anaMenu" class="ekran aktif">
+        <h1 style="color: var(--ana-renk); margin-bottom: 5px;">Nisa'mın Dünyası ❤️</h1>
+        <button class="menu-btn" style="background:#4cc9f0;" onclick="startNinjaGame()">🎮 Koca Avcısı (Oyna!)</button>
+        <button class="menu-btn" style="background:#ff4d6d;" onclick="ekranDegistir('stresEkrani')">🥊 Stres Atma Sahası</button>
+        <button class="menu-btn" style="background:#ffb3c1; color:#d63384" onclick="ekranDegistir('mevsimEkrani')">🌸 Aşkımızın 4 Mevsimi</button>
+        <button class="menu-btn" onclick="ekranDegistir('slotEkrani')">🎰 Kader Çarkımız</button>
+        <button class="menu-btn" style="background:#9b5de5" onclick="ekranDegistir('sayacEkrani')">⏳ Zaman Tünelimiz</button>
+        <button class="menu-btn" onclick="popupAc('fal')">🔮 Günün Falı</button>
+        <button id="sarkiButon" class="menu-btn" style="background:#48cae4" onclick="sarkiBaslat(this)">🎵 Bizim Şarkımız</button>
+        <button class="menu-btn geri-btn" onclick="ekranDegistir('sikayetEkrani')">📋 Haklılık Masası</button>
+    </div>
+
+    <div id="ninjaEkrani" class="ekran">
+        <h2 style="color:var(--ana-renk); margin:0;">Kocanı Palkala!</h2>
+        <div style="display: flex; justify-content: space-around; font-weight: bold; color: var(--ana-renk); margin: 15px 0;">
+            <div>Puan: <span id="nSkor">0</span></div>
+            <div>Süre: <span id="nSure">30</span></div>
+        </div>
+        <div id="game-stage"></div>
+        <p style="font-size: 13px; color: #666;">Bana vur, sineklerden kaç!</p>
+    </div>
+
+    <div id="stresEkrani" class="ekran">
+        <h2 style="color:var(--ana-renk)">Vur Kocana Rahatla!</h2>
+        <div class="stres-alan" onclick="stresVur(event)">
+            <img src="koca.jpg" class="koca-foto" id="kocaFoto">
+        </div>
+        <div id="stresMetni" style="font-weight: bold; color: var(--ana-renk); font-size: 18px;">Rahatlama Seviyesi: %0</div>
+        <button class="menu-btn geri-btn" onclick="ekranDegistir('anaMenu')">Bu kadar yeter, affettim!</button>
+    </div>
+
+    <div id="mevsimEkrani" class="ekran">
+        <h2 style="color:var(--ana-renk)">Bizim Mevsimlerimiz</h2>
+        <div class="mevsim-izgara">
+            <div class="mevsim-kutu" onclick="fotoAc('ilkgelis.jpeg', 'İLKBAHAR', 'Geldiğin gün kalbimde çiçekler açtı Nisa\'m.')"><img src="ilkgelis.jpeg"><div class="mevsim-etiket">İLKBAHAR</div></div>
+            <div class="mevsim-kutu" onclick="fotoAc('ilkcicek.jpeg', 'YAZ', 'İçimi ısıtan o ilk çiçek...')"><img src="ilkcicek.jpeg"><div class="mevsim-etiket">YAZ</div></div>
+            <div class="mevsim-kutu" onclick="fotoAc('bowling.jpeg', 'SONBAHAR', 'En eğlenceli mevsimimiz!')"><img src="bowling.jpeg"><div class="mevsim-etiket">SONBAHAR</div></div>
+            <div class="mevsim-kutu" onclick="fotoAc('bulgaristan.jpeg', 'KIŞ', 'En güzel kış masalımız.')"><img src="bulgaristan.jpeg"><div class="mevsim-etiket">KIŞ</div></div>
+        </div>
+        <button class="menu-btn geri-btn" onclick="ekranDegistir('anaMenu')">Geri Dön</button>
+    </div>
+
+    <div id="sayacEkrani" class="ekran">
+        <h2 style="color:var(--ana-renk)">Bizim Yolculuğumuz</h2>
+        <div id="sayac-text" style="font-size: 17px; font-weight: bold; background: #fff; padding: 15px; border-radius: 20px; border: 2px solid #f8bbd0;"></div>
+        
+        <div class="stats-grid">
+            <div class="stat-item">☕ Kahvaltılar<span class="stat-val" id="stat-pazar">0</span></div>
+            <div class="stat-item">😊 Gülüşmeler<span class="stat-val" id="stat-gulus">0</span></div>
+            <div class="stat-item">🌙 Geceler<span class="stat-val" id="stat-gece">0</span></div>
+            <div class="stat-item">🍕 Kaçamaklar<span class="stat-val" id="stat-yemek">0</span></div>
+        </div>
+        
+        <button class="menu-btn geri-btn" onclick="ekranDegistir('anaMenu')">Geri Dön</button>
+    </div>
+
+    <div id="slotEkrani" class="ekran"><h2 style="color:var(--ana-renk)">İltifat Çarkı</h2><div id="slotSonuc" style="font-size: 24px; margin: 20px 0; font-weight: bold; color: var(--ana-renk);">...</div><button class="menu-btn" onclick="slotCevir()">KADERİ ÇEVİR</button><button class="menu-btn geri-btn" onclick="ekranDegistir('anaMenu')">Geri Dön</button></div>
+    <div id="sikayetEkrani" class="ekran"><h2 style="color:var(--ana-renk)">Haklılık Masası</h2><button class="menu-btn" onclick="sikayetAnaliz()">ANALİZ ET</button><p id="analizSonuc" style="margin-top:10px; font-weight:bold; color:var(--ana-renk)"></p><button class="menu-btn geri-btn" onclick="ekranDegistir('anaMenu')">Geri Dön</button></div>
+</div>
+
+<div id="fotoModal" onclick="fotoKapat()"><div id="modalBaslik" style="color:white; font-size:24px; margin-bottom:10px;"></div><img id="modalImg" src=""><div id="modalNot"></div></div>
+<div id="popupGenel" class="popup"><h3 id="popupBaslik"></h3><p id="popupYazi"></p><button class="menu-btn" onclick="popupKapat()">Canım Kocacığım ❤️</button></div>
+
+<div id="ozurPopup" class="popup" style="background: #fff0f5; border-color: #ff4d6d;">
+    <h3 style="color:#ff4d6d; margin-top:0;">🏳️ Teslim Oluyorum!</h3>
+    <p id="ozurMetni" style="font-weight: bold; font-style: italic;"></p>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="menu-btn" style="background:#28a745; flex:1;" onclick="affetti()">Affettim 😘</button>
+        <button class="menu-btn" style="background:#dc3545; flex:1;" onclick="dovmeyeDevam()">Yetmez! 😡</button>
+    </div>
+</div>
+
+<div id="gameResultPopup" class="popup">
+    <h2 style="color: var(--ana-renk);">Oyun Bitti! 🏁</h2>
+    <div style="font-size: 22px; font-weight: bold; margin-bottom: 10px;">Skorun: <span id="finalScore">0</span></div>
+    <p id="sweetMessage" style="font-style: italic; color: #444; margin-bottom: 25px; font-weight: bold;"></p>
+    <button class="menu-btn" style="background:#28a745;" onclick="closePopupAndRestart()">🔄 Tekrar Dene</button>
+    <button class="menu-btn" style="background:#8e9aaf;" onclick="closePopupAndGoHome()">🏠 Ana Menü</button>
+</div>
+
+<script>
+    let vurusSayisi = 0;
+    let score = 0, timeLeft = 30, nGameInt, nSpawnInt;
+    const baslangic = new Date(2024, 3, 10); // 10 Nisan 2024
+
+    const ozurMesajlari = ["Aşkım valla bir daha yapmıcam!", "Tamam sen haklısın, nakavt oldum!", "Özür dilerim sultanım, affet!", "Pestilim çıktı, gel barışalım? ❤️"];
+    const sweetMessages = ["Skorun harika Nisa'm! ❤️", "Beni her halimle yakalıyorsun sincabım! 😘", "Kalp avcısı mısın nesin? 👑"];
+
+    /* PALKA VE FARE KONTROLÜ */
+    function movePalka(e) { 
+        const p = document.getElementById('palka');
+        p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px'; 
+    }
+    function hitPalka() { document.getElementById('palka').classList.add('vur-etki'); }
+    function resetPalka() { document.getElementById('palka').classList.remove('vur-etki'); }
+
+    /* EKRAN YÖNETİMİ */
+    function ekranDegistir(id) {
+        document.querySelectorAll('.ekran').forEach(e => e.classList.remove('aktif'));
+        document.getElementById(id).classList.add('aktif');
+        // Palka sadece oyun ekranında aktif olsun
+        document.getElementById('palka').style.display = (id === 'ninjaEkrani') ? 'block' : 'none';
+        document.body.style.cursor = (id === 'ninjaEkrani') ? 'none' : 'default';
+        if(id === 'stresEkrani') { vurusSayisi = 0; document.getElementById('stresMetni').innerText = "Rahatlama Seviyesi: %0"; }
+    }
+
+    /* KOCA AVCISI OYUNU */
+    function startNinjaGame() {
+        ekranDegistir('ninjaEkrani');
+        score = 0; timeLeft = 30;
+        document.getElementById('nSkor').innerText = score;
+        document.getElementById('nSure').innerText = timeLeft;
+        const stage = document.getElementById('game-stage');
+        stage.innerHTML = '';
+        nSpawnInt = setInterval(spawnObj, 700);
+        nGameInt = setInterval(() => {
+            timeLeft--;
+            document.getElementById('nSure').innerText = timeLeft;
+            if(timeLeft <= 0) endNinjaGame();
+        }, 1000);
+    }
+
+    function spawnObj() {
+        const stage = document.getElementById('game-stage');
+        const isKoca = Math.random() > 0.3;
+        const obj = document.createElement('div');
+        obj.className = 'target';
+        obj.innerHTML = isKoca ? `<img src="koca.jpg" class="koca-obj">` : `<span class="fly-obj">🪰</span>`;
+        obj.style.left = Math.random() * (stage.offsetWidth - 65) + 'px';
+        obj.style.bottom = "-80px";
+        obj.style.animation = `flyUp ${Math.random() * 2 + 1.5}s linear forwards`;
+        obj.onclick = (e) => {
+            score += isKoca ? 10 : -5;
+            document.getElementById('nSkor').innerText = score;
+            obj.remove();
+        };
+        stage.appendChild(obj);
+        setTimeout(() => { if(obj) obj.remove(); }, 3500);
+    }
+
+    function endNinjaGame() {
+        clearInterval(nGameInt); clearInterval(nSpawnInt);
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('sweetMessage').innerText = sweetMessages[Math.floor(Math.random()*sweetMessages.length)];
+        document.getElementById('gameResultPopup').style.display = 'block';
+    }
+
+    function closePopupAndRestart() { document.getElementById('gameResultPopup').style.display = 'none'; startNinjaGame(); }
+    function closePopupAndGoHome() { document.getElementById('gameResultPopup').style.display = 'none'; ekranDegistir('anaMenu'); }
+
+    /* STRES ATMA */
+    function stresVur(e) {
+        if(vurusSayisi * 5 >= 100) return;
+        vurusSayisi++;
+        const koca = document.getElementById('kocaFoto');
+        koca.classList.remove('sarsil'); void koca.offsetWidth; koca.classList.add('sarsil');
+        const t = document.createElement("div"); t.innerText = "ŞRAK!"; t.className = "vurus-metni";
+        t.style.left = (e.offsetX - 30) + "px"; t.style.top = (e.offsetY - 20) + "px";
+        e.currentTarget.appendChild(t);
+        setTimeout(() => t.remove(), 500);
+        let seviye = vurusSayisi * 5;
+        document.getElementById('stresMetni').innerText = "Rahatlama Seviyesi: %" + seviye;
+        if(seviye >= 100) {
+            setTimeout(() => {
+                document.getElementById('ozurMetni').innerText = ozurMesajlari[Math.floor(Math.random()*ozurMesajlari.length)];
+                document.getElementById('ozurPopup').style.display = 'block';
+            }, 300);
+        }
+    }
+
+    function affetti() { document.getElementById('ozurPopup').style.display = 'none'; konfetiPatlat(); vurusSayisi = 0; }
+    function dovmeyeDevam() { document.getElementById('ozurPopup').style.display = 'none'; vurusSayisi = 0; }
+
+    /* KONFETİ */
+    function konfetiPatlat() {
+        const renkler = ["❤️", "💖", "🎉", "💋", "🌸"];
+        for(let i=0; i<100; i++) {
+            const k = document.createElement("div"); k.classList.add("patlayan-konfeti");
+            k.innerText = renkler[Math.floor(Math.random()*renkler.length)];
+            document.body.appendChild(k);
+            const x = (Math.random()-0.5) * window.innerWidth;
+            const y = (Math.random()-0.5) * window.innerHeight;
+            k.style.left = '50%'; k.style.top = '50%';
+            k.animate([{transform:'translate(0,0) scale(1)', opacity:1},{transform:`translate(${x}px, ${y}px) rotate(360deg) scale(2)`, opacity:0}], {duration:2000, easing:'ease-out'});
+            setTimeout(() => k.remove(), 2000);
+        }
+    }
+
+    /* ZAMAN TÜNELİ SİSTEMİ */
+    setInterval(() => {
+        const fark = new Date() - baslangic;
+        const gun = Math.floor(fark/(1000*60*60*24));
+        const saat = Math.floor((fark/(1000*60*60))%24);
+        const dak = Math.floor((fark/(1000*60))%60);
+        const sn = Math.floor((fark/1000)%60);
+        
+        document.getElementById('sayac-text').innerHTML = `${gun} Gün, ${saat} Saat, ${dak} Dakika, ${sn} Saniyedir...`;
+        
+        // Tahmini İstatistikler
+        document.getElementById('stat-pazar').innerText = Math.floor(gun / 7);
+        document.getElementById('stat-gulus').innerText = gun * 15;
+        document.getElementById('stat-gece').innerText = gun;
+        document.getElementById('stat-yemek').innerText = Math.floor(gun * 1.2);
+    }, 1000);
+
+    /* DİĞER FONKSİYONLAR */
+    function fotoAc(src, baslik, not) { document.getElementById('modalImg').src = src; document.getElementById('modalBaslik').innerText = baslik; document.getElementById('modalNot').innerText = not; document.getElementById('fotoModal').style.display = 'flex'; }
+    function fotoKapat() { document.getElementById('fotoModal').style.display = 'none'; }
+    function slotCevir() { document.getElementById('slotSonuc').innerText = ["Nisa'm","Canım","Meleğim"][Math.floor(Math.random()*3)] + " " + ["Isırırım!","Dünya Güzeli","Bir Tanem"][Math.floor(Math.random()*3)]; }
+    function popupAc(tip) { document.getElementById('popupBaslik').innerText = "🔮 Kehanet"; document.getElementById('popupYazi').innerText = "Yıldızlar diyor ki: Kocan sana tapıyor! ❤️"; document.getElementById('popupGenel').style.display = 'block'; }
+    function popupKapat() { document.getElementById('popupGenel').style.display = 'none'; }
+    function sarkiBaslat(btn) { const ses = document.getElementById('ozelSes'); if (ses.paused) { ses.play(); btn.innerText = "⏸️ Durdur"; } else { ses.pause(); btn.innerText = "🎵 Şarkımız"; } }
+    function sikayetAnaliz() { document.getElementById('analizSonuc').innerText = "⚖️ Nisa %100 Haklıdır! ❤️"; }
+    
+    // Yağmur
+    setInterval(() => { const div = document.createElement("div"); div.className = "yagmur"; div.innerText = "❤️"; div.style.left = Math.random()*100+"vw"; document.body.appendChild(div); setTimeout(() => div.remove(), 5000); }, 800);
+</script>
+</body>
+</html>
